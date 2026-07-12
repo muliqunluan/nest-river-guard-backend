@@ -1,0 +1,66 @@
+services:
+  # PostgreSQL 数据库服务
+  postgres:
+    image: postgres:15-alpine
+    container_name: river-guard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-12100}
+      POSTGRES_DB: ${DB_NAME:-river_guard}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - river-guard-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS 应用服务
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: river-guard-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${PG_USERNAME:-postgres}
+      DB_PASSWORD: ${PG_PASSWORD:-12100}
+      DB_NAME: ${DB_NAME:-river_guard}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    ports:
+      - "7050:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - river-guard-network
+    command: >
+      sh -c "
+        echo '等待数据库启动...' &&
+        sleep 10 &&
+        echo '检查数据库连接...' &&
+        bun run build &&
+        node dist/scripts/check-db.js &&
+        echo '初始化测试数据...' &&
+        node dist/scripts/init-test-data.js &&
+        echo '启动应用...' &&
+        bun run start:prod
+      "
+
+volumes:
+  postgres_data:
+
+networks:
+  river-guard-network:
+    driver: bridge
