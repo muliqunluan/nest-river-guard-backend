@@ -38,6 +38,7 @@ services:
       DB_NAME: ${DB_NAME:-river_guard}
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      KEY: ${KEY}
     ports:
       - "7050:3000"
     depends_on:

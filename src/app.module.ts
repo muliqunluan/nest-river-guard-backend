@@ -8,10 +8,12 @@ import { User } from './entities/user.entity';
 import { Permission } from './entities/permission.entity';
 import { RolePermission } from './entities/role-permission.entity';
 import { Role } from './entities/role.entity';
+import { Camera } from './entities/camera.entity';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { CamerasModule } from './cameras/cameras.module';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 @Module({
@@ -30,7 +32,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
         username: configService.get('database.username'),
         password: configService.get('database.password'),
         database: configService.get('database.database'),
-        entities: [User, Permission, RolePermission, Role],
+        entities: [User, Permission, RolePermission, Role, Camera],
         synchronize: configService.get('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],
@@ -39,6 +41,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
     UserModule,
     RolesModule,
     PermissionsModule,
+    CamerasModule,
   ],
   providers: [
     {

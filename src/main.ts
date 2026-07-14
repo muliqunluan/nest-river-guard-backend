@@ -26,9 +26,21 @@ async function bootstrap() {
       },
       'JWT-auth', // 这个名称将在 @ApiBearerAuth() 装饰器中使用
     )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'CameraJWT',
+        description: '请输入摄像头 JWT token',
+        in: 'header',
+      },
+      'Camera-auth', // 摄像头 JWT 认证
+    )
     .addTag('认证', '用户认证相关接口')
     .addTag('用户管理', '用户管理相关接口')
     .addTag('角色管理', '角色管理相关接口')
+    .addTag('摄像头管理', '摄像头注册与管理相关接口')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -45,11 +45,26 @@ CREATE TABLE IF NOT EXISTS "role_permission" (
     UNIQUE(role_id, permission_id)
 );
 
+-- 创建 camera 表（如果不存在）
+CREATE TABLE IF NOT EXISTS "camera" (
+    "id" SERIAL PRIMARY KEY,
+    "deviceId" VARCHAR(255) UNIQUE NOT NULL,
+    "accessToken" TEXT NOT NULL,
+    "lat" DOUBLE PRECISION,
+    "lng" DOUBLE PRECISION,
+    "status" VARCHAR(20) DEFAULT 'offline',
+    "lastSeenAt" TIMESTAMP,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 创建索引以提高查询性能
 CREATE INDEX IF NOT EXISTS "idx_user_email" ON "user"("email");
 CREATE INDEX IF NOT EXISTS "idx_user_roles" ON "user" USING GIN("roles");
 CREATE INDEX IF NOT EXISTS "idx_role_name" ON "role"("name");
 CREATE INDEX IF NOT EXISTS "idx_permission_name" ON "permission"("name");
+CREATE INDEX IF NOT EXISTS "idx_camera_deviceId" ON "camera"("deviceId");
+CREATE INDEX IF NOT EXISTS "idx_camera_status" ON "camera"("status");
 
 -- 插入默认角色
 INSERT INTO "role" ("name") VALUES 
@@ -86,6 +101,7 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_user_updated_at BEFORE UPDATE ON "user" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_role_updated_at BEFORE UPDATE ON "role" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_permission_updated_at BEFORE UPDATE ON "permission" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- camera 表使用 TypeORM 的 @UpdateDateColumn 自动管理 updatedAt，无需触发器
 
 -- 插入种子用户数据
 -- 密码 admin123 对应的 bcrypt hash
