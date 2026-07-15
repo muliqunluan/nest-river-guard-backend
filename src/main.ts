@@ -41,6 +41,8 @@ async function bootstrap() {
     .addTag('用户管理', '用户管理相关接口')
     .addTag('角色管理', '角色管理相关接口')
     .addTag('摄像头管理', '摄像头注册与管理相关接口')
+    .addTag('事件管理', '事件上报与查询相关接口')
+    .addTag('媒体管理', '媒体文件上传与管理相关接口')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

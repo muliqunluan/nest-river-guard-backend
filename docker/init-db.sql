@@ -58,6 +58,34 @@ CREATE TABLE IF NOT EXISTS "camera" (
     "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 创建 event 表（如果不存在）
+CREATE TABLE IF NOT EXISTS "event" (
+    "id" SERIAL PRIMARY KEY,
+    "cameraId" INTEGER NOT NULL,
+    "type" VARCHAR(100) NOT NULL,
+    "severity" VARCHAR(20) DEFAULT 'info',
+    "status" VARCHAR(20) DEFAULT 'pending',
+    "description" TEXT,
+    "metadata" JSONB,
+    "occurredAt" TIMESTAMP NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建 media_file 表（如果不存在）
+CREATE TABLE IF NOT EXISTS "media_file" (
+    "id" SERIAL PRIMARY KEY,
+    "cameraId" INTEGER NOT NULL,
+    "eventId" INTEGER,
+    "mediaType" VARCHAR(20) NOT NULL,
+    "filePath" VARCHAR(500) NOT NULL,
+    "originalName" VARCHAR(255) NOT NULL,
+    "mimeType" VARCHAR(100) NOT NULL,
+    "fileSize" INTEGER NOT NULL,
+    "capturedAt" TIMESTAMP NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 创建索引以提高查询性能
 CREATE INDEX IF NOT EXISTS "idx_user_email" ON "user"("email");
 CREATE INDEX IF NOT EXISTS "idx_user_roles" ON "user" USING GIN("roles");
@@ -65,6 +93,12 @@ CREATE INDEX IF NOT EXISTS "idx_role_name" ON "role"("name");
 CREATE INDEX IF NOT EXISTS "idx_permission_name" ON "permission"("name");
 CREATE INDEX IF NOT EXISTS "idx_camera_deviceId" ON "camera"("deviceId");
 CREATE INDEX IF NOT EXISTS "idx_camera_status" ON "camera"("status");
+CREATE INDEX IF NOT EXISTS "idx_event_cameraId" ON "event"("cameraId");
+CREATE INDEX IF NOT EXISTS "idx_event_type" ON "event"("type");
+CREATE INDEX IF NOT EXISTS "idx_event_occurredAt" ON "event"("occurredAt");
+CREATE INDEX IF NOT EXISTS "idx_event_status" ON "event"("status");
+CREATE INDEX IF NOT EXISTS "idx_media_file_cameraId" ON "media_file"("cameraId");
+CREATE INDEX IF NOT EXISTS "idx_media_file_eventId" ON "media_file"("eventId");
 
 -- 插入默认角色
 INSERT INTO "role" ("name") VALUES 

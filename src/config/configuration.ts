@@ -19,4 +19,12 @@ export default () => ({
    * 默认值：30 秒
    */
   cameraOfflineTimeout: parseInt(process.env.CAMERA_OFFLINE_TIMEOUT || '30', 10) * 1000,
+  /**
+   * 文件上传配置
+   */
+  upload: {
+    directory: process.env.UPLOAD_DIR || './uploads',
+    maxImageSize: parseInt(process.env.MAX_IMAGE_SIZE || '5242880', 10),  // 5MB
+    maxVideoSize: parseInt(process.env.MAX_VIDEO_SIZE || '52428800', 10), // 50MB
+  },
 });

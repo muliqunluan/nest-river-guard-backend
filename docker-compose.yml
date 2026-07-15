@@ -39,8 +39,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       KEY: ${KEY}
+      UPLOAD_DIR: ${UPLOAD_DIR:-./uploads}
+      MAX_IMAGE_SIZE: ${MAX_IMAGE_SIZE:-5242880}
+      MAX_VIDEO_SIZE: ${MAX_VIDEO_SIZE:-52428800}
     ports:
       - "7050:3000"
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,6 +66,7 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:
 
 networks:
   river-guard-network:

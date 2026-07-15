@@ -9,11 +9,15 @@ import { Permission } from './entities/permission.entity';
 import { RolePermission } from './entities/role-permission.entity';
 import { Role } from './entities/role.entity';
 import { Camera } from './entities/camera.entity';
+import { Event } from './entities/event.entity';
+import { MediaFile } from './entities/media-file.entity';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { CamerasModule } from './cameras/cameras.module';
+import { EventsModule } from './events/events.module';
+import { MediaModule } from './media/media.module';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 @Module({
@@ -32,7 +36,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
         username: configService.get('database.username'),
         password: configService.get('database.password'),
         database: configService.get('database.database'),
-        entities: [User, Permission, RolePermission, Role, Camera],
+        entities: [User, Permission, RolePermission, Role, Camera, Event, MediaFile],
         synchronize: configService.get('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],
@@ -42,6 +46,8 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
     RolesModule,
     PermissionsModule,
     CamerasModule,
+    EventsModule,
+    MediaModule,
   ],
   providers: [
     {
