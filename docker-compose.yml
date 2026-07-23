@@ -53,6 +53,7 @@ services:
       - river-guard-network
     command: >
       sh -c "
+        chown -R 1001:1001 /app/uploads &&
         echo '等待数据库启动...' &&
         sleep 10 &&
         echo '检查数据库连接...' &&
