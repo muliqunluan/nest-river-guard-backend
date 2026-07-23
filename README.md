@@ -1,155 +1,145 @@
 # River Guard 河流监控系统 - 后端服务
 
-## 项目介绍
+## 项目简介
 
-**River Guard（河流监控系统）** 是一个基于现代 Web 技术构建的全栈河流监控管理平台。本项目是其**后端服务**，为前端提供 RESTful API 支持，采用以下技术栈：
+River Guard（河流监控系统）是一个基于现代 Web 技术构建的全栈河流监控管理平台，通过 Jetson 边缘计算设备实现对河流环境的实时监控、智能告警与数据管理。本仓库为项目后端服务，为前端 Web 应用及 Jetson 设备提供 RESTful API。
 
-- **框架**：[NestJS 11](https://nestjs.com) + [TypeScript](https://www.typescriptlang.org)
-- **运行时**：Node.js 18+ / Bun
-- **编译工具**：SWC（通过 `@swc/core`）
-- **数据库**：[PostgreSQL](https://www.postgresql.org) 15+ + [TypeORM](https://typeorm.io) 0.3.x
-- **认证与授权**：
-  - JWT 认证（`@nestjs/jwt`）
-  - 基于角色的访问控制（RBAC）
-  - 基于能力的权限管理（[CASL](https://casl.js.org)）
-- **密码加密**：[bcryptjs](https://github.com/dcodeIO/bcrypt.js)
-- **数据验证**：[class-validator](https://github.com/typestack/class-validator) + [class-transformer](https://github.com/typestack/class-transformer)
-- **API 文档**：[Swagger](https://swagger.io)（`@nestjs/swagger` + `swagger-ui-express`）
-- **代码规范**：ESLint + Prettier
-- **容器化**：Docker + Docker Compose
+---
 
-### 已实现功能
+## 技术栈
 
-- **用户注册与登录**：基于 JWT 的认证机制，注册后自动返回访问令牌
-- **用户信息查询**：获取当前登录用户的详细信息
-- **基于角色的访问控制（RBAC）**：
-  - 角色管理：创建、查询、更新、删除角色
-  - 用户-角色分配：为用户分配或移除角色
-  - 受保护用户机制：保护管理员账号不可被降权
-- **基于能力的权限管理（CASL）**：细粒度的操作权限控制
-- **Swagger API 文档**：自动生成可交互的 API 文档页面
-- **统一的响应格式**：通过全局拦截器标准化 API 响应结构
-- **Docker 容器化部署**：一键启动 PostgreSQL 数据库和后端应用
-- **测试数据初始化**：自动创建管理员/编辑者/查看者等测试账户
+| 类别 | 选型 |
+|------|------|
+| 框架 | NestJS 11 + TypeScript |
+| 运行时 | Node.js 20+ / Bun |
+| 数据库 | PostgreSQL 15+ + TypeORM 0.3.x |
+| 认证 | JWT（用户认证 + 摄像头设备认证） |
+| 权限 | RBAC（基于角色）+ CASL（基于能力） |
+| API 文档 | Swagger（@nestjs/swagger） |
+| 文件上传 | Multer + 磁盘存储 |
+| 容器化 | Docker + Docker Compose |
 
-## 启动方法
+---
+
+## 核心功能
+
+### 用户认证与授权
+- JWT 用户登录/注册
+- 基于角色的访问控制（RBAC）：管理员、编辑者、查看者
+- 基于 CASL 的细粒度操作权限管理
+- Swagger 自动生成交互式 API 文档
+
+### 摄像头（Jetson 设备）管理
+- 设备注册：Jetson 设备通过共享密钥（KEY）注册到系统，获取专属 JWT
+- 状态上报：设备定期上报 GPS 坐标与在线状态
+- 离线检测：服务端自动检测超时未上报的设备，标记为离线
+- 设备列表查询与管理
+
+### 事件管理
+- 事件上报：Jetson 设备检测到异常（如垃圾漂浮物）时上报事件
+- 事件查询：按类型、严重级别、时间范围、摄像头等条件筛选
+- 事件状态更新：人工确认、处理事件
+
+### 媒体文件管理
+- 文件上传：支持图片（最高 5MB）和短视频（最高 50MB）
+- 按类型/日期/设备自动归档存储
+- 文件查询与预览，支持分页
+- 与事件关联：事件可关联多张图片或视频
+
+---
+
+## 快速开始（本地开发）
 
 ### 环境要求
 
-- [Node.js](https://nodejs.org) >= 18.x 或 [Bun](https://bun.sh) 1.x
-- [PostgreSQL](https://www.postgresql.org) >= 12+
-- [Docker](https://www.docker.com)（可选，用于容器化部署）
+- Node.js >= 20.x 或 Bun 1.x
+- PostgreSQL >= 12+
 
-### 1. 克隆项目
+### 1. 安装依赖
 
 ```bash
 git clone <repository-url>
 cd nest-river-guard-backend
-```
 
-### 2. 安装依赖
-
-使用 npm：
-
-```bash
+# 使用 npm
 npm install
-```
 
-或使用 Bun：
-
-```bash
+# 或使用 Bun（推荐）
 bun install
 ```
 
-### 3. 配置环境变量
-
-复制环境变量示例文件并进行配置：
+### 2. 配置环境变量
 
 ```bash
 cp .env.example .env
+# 编辑 .env，填写数据库连接信息等配置
 ```
 
-编辑 `.env` 文件，填写以下配置：
-
-| 变量名 | 说明 | 默认值 | 必填 |
-|--------|------|--------|------|
-| `PORT` | 应用监听端口 | `3000` | 否 |
-| `DB_HOST` | 数据库主机地址 | `localhost` | 否 |
-| `DB_PORT` | 数据库端口 | `5432` | 否 |
-| `DB_USERNAME` / `PG_USERNAME` | 数据库用户名 | `postgres` | 否 |
-| `DB_PASSWORD` / `PG_PASSWORD` | 数据库密码 | — | **是** |
-| `DB_NAME` | 数据库名称 | `river_guard` | 否 |
-| `JWT_SECRET` | JWT 签名密钥 | 默认值（生产环境务必修改） | 否 |
-| `JWT_EXPIRES_IN` | JWT 令牌过期时间 | `7d` | 否 |
-
-### 4. 启动开发服务器
+### 3. 启动开发服务器
 
 ```bash
-# 热重载开发模式（推荐）
 bun run start:dev
 ```
 
 开发服务器默认在 **http://localhost:3000** 启动。
 
-### 5. 访问 API 文档
+### 4. 访问 API 文档
 
 启动后访问 **http://localhost:3000/api-docs** 查看 Swagger 交互式 API 文档。
 
-### 6. 构建生产版本
+### 5. Docker 快速启动
 
 ```bash
-bun run build
-```
-
-构建完成后，使用以下命令启动生产服务器：
-
-```bash
-bun run start:prod
-```
-
-## Docker 快速启动
-
-项目支持通过 Docker Compose 一键启动 PostgreSQL 数据库和后端应用：
-
-```bash
-# 构建并启动所有服务（前台运行，查看日志）
-docker compose up --build
-
-# 或后台启动
 docker compose up --build -d
 ```
 
-首次启动会自动完成以下操作：
-1. 启动 PostgreSQL 数据库并初始化表结构
-2. 构建 NestJS 应用
-3. 检查数据库连接
-4. 初始化测试数据（管理员/编辑者/查看者账户）
-5. 启动应用服务（端口 **7050**）
+---
 
-启动后访问：**http://localhost:7050/api-docs**（Swagger 文档）
+## API 概览
 
-### 查看运行状态
+### 认证 /api/auth
 
-```bash
-# 查看所有服务状态
-docker compose ps
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /auth/register | 用户注册 | - |
+| POST | /auth/login | 用户登录 | - |
+| GET | /auth/me | 获取当前用户 | JWT |
 
-# 查看应用日志
-docker compose logs -f app
+### 摄像头 /api/cameras
 
-# 查看数据库日志
-docker compose logs -f postgres
-```
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /cameras/register | 设备注册 | KEY |
+| POST | /cameras/:id/status | 上报状态 | Camera JWT |
+| GET | /cameras | 设备列表 | JWT |
+| DELETE | /cameras/:id | 删除设备 | JWT |
 
-### 停止服务
+### 事件 /api/events
 
-```bash
-docker compose down
-```
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /events | 上报事件 | Camera JWT |
+| GET | /events | 查询事件列表 | JWT |
+| GET | /events/:id | 获取事件详情 | JWT |
+| PATCH | /events/:id | 更新事件 | JWT |
+
+### 媒体 /api/media
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /media/upload | 上传媒体文件 | Camera JWT |
+| POST | /media/event/:eventId | 为事件上传媒体 | Camera JWT |
+| GET | /media | 查询媒体列表 | JWT |
+| GET | /media/:id/file | 获取媒体文件 | JWT |
+| GET | /media/by-event/:eventId | 获取事件的媒体 | JWT |
+
+详细 API 文档请参考 [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
+
+---
 
 ## 测试账户
 
-初始化测试数据后，可使用以下账户登录：
+系统初始化后自动创建以下测试账户：
 
 | 角色 | 邮箱 | 密码 |
 |------|------|------|
@@ -158,49 +148,22 @@ docker compose down
 | 查看者 | viewer@test.com | viewer123 |
 | 多角色 | multi@test.com | multi123 |
 
-## API 概览
+---
 
-### 认证接口
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/auth/register` | 用户注册 |
-| POST | `/api/auth/login` | 用户登录 |
-| GET | `/api/auth/me` | 获取当前用户信息 |
+## 项目结构
 
-### 用户管理接口
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/users/email/:email` | 通过邮箱搜索用户 |
-| GET | `/api/users/profile` | 获取当前用户资料 |
-| GET | `/api/users/:id` | 通过 ID 获取用户信息 |
-| PUT | `/api/users/:id/roles` | 更新用户角色 |
-| POST | `/api/users/:id/roles` | 为用户分配角色 |
-| DELETE | `/api/users/:id/roles/:roleName` | 移除用户角色 |
-
-### 角色管理接口
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/roles` | 获取所有角色 |
-| POST | `/api/roles` | 创建角色 |
-| PUT | `/api/roles/:id` | 更新角色 |
-| DELETE | `/api/roles/:id` | 删除角色 |
-| POST | `/api/roles/:id/permissions` | 为角色分配权限 |
-| GET | `/api/roles/:id/users` | 获取拥有指定角色的用户列表 |
-
-详细 API 文档请参考 [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
-
-## 可用命令
-
-| 命令 | 说明 |
-|------|------|
-| `bun run dev` | 启动开发服务器 |
-| `bun run start:dev` | 热重载模式启动开发服务器 |
-| `bun run start:debug` | 调试模式启动 |
-| `bun run build` | 构建生产版本 |
-| `bun run start:prod` | 启动生产服务器 |
-| `bun run lint` | 运行 ESLint 代码检查 |
-| `bun run format` | 使用 Prettier 格式化代码 |
-| `bun run test` | 运行单元测试 |
-| `bun run test:watch` | 监听模式运行测试 |
-| `bun run test:cov` | 运行测试并生成覆盖率报告 |
-| `bun run test:e2e` | 运行端到端测试 |
+```
+src/
+├── auth/               # 用户认证模块（JWT）
+├── cameras/            # 摄像头设备管理
+├── config/             # 全局配置
+├── entities/           # TypeORM 实体定义
+├── events/             # 事件管理
+├── media/              # 媒体文件管理
+├── permissions/        # 权限管理（CASL）
+├── roles/              # 角色管理（RBAC）
+├── users/              # 用户管理
+├── scripts/            # 初始化脚本
+├── main.ts             # 应用入口
+└── app.module.ts       # 根模块
+```
