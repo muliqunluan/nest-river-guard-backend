@@ -53,7 +53,7 @@ export class RolesController {
   @Post('assign-to-user')
   @HttpCode(HttpStatus.OK)
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('users'))
   @ApiOperation({ summary: '为用户分配角色', description: '通过邮箱为用户分配角色（需要管理员权限）' })
   @ApiBody({ type: AssignRoleToUserDto })
   @ApiResponse({ status: 200, description: '分配成功' })
@@ -71,7 +71,7 @@ export class RolesController {
   // ⚠️ 具体路由必须放在参数化路由(:id)之前，避免路由冲突
   @Delete('remove-from-user')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('users'))
   @ApiOperation({ summary: '从用户移除角色', description: '通过邮箱从用户移除角色（需要管理员权限）' })
   @ApiQuery({ name: 'email', description: '用户邮箱', example: 'user@example.com' })
   @ApiQuery({ name: 'roleName', description: '角色名称', example: 'admin' })
@@ -86,7 +86,7 @@ export class RolesController {
   // 创建新角色 - 仅管理员
   @Post()
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('roles'))
   @ApiOperation({ summary: '创建新角色', description: '创建新角色（需要管理员权限）' })
   @ApiBody({ type: CreateRoleDto })
   @ApiResponse({ status: 201, description: '创建成功' })
@@ -101,7 +101,7 @@ export class RolesController {
   // 更新角色 - 仅管理员
   @Put(':id')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('roles'))
   @ApiOperation({ summary: '更新角色', description: '更新指定角色的信息（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '角色ID', example: '1' })
   @ApiBody({ type: UpdateRoleDto })
@@ -116,7 +116,7 @@ export class RolesController {
   // 删除角色 - 仅管理员
   @Delete(':id')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('roles'))
   @ApiOperation({ summary: '删除角色', description: '删除指定的角色（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '角色ID', example: '1' })
   @ApiResponse({ status: 200, description: '删除成功' })
@@ -142,7 +142,7 @@ export class RolesController {
   @Post(':id/permissions')
   @HttpCode(HttpStatus.OK)
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('permissions'))
   @ApiOperation({ summary: '为角色分配权限', description: '为指定角色分配权限（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '角色ID', example: '1' })
   @ApiBody({ type: AssignPermissionDto })
@@ -163,7 +163,7 @@ export class RolesController {
   // 从角色移除权限 - 仅管理员
   @Delete(':id/permissions/:permissionId')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('permissions'))
   @ApiOperation({ summary: '移除角色权限', description: '从指定角色移除权限（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '角色ID', example: '1' })
   @ApiParam({ name: 'permissionId', description: '权限ID', example: '1' })

@@ -1,8 +1,10 @@
 // src/auth/auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
+import { RolePermission } from '../entities/role-permission.entity';
+import { Permission } from '../entities/permission.entity';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
@@ -11,8 +13,45 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
+
+    @InjectRepository(RolePermission)
+    private rolePermissionRepo: Repository<RolePermission>,
+
+    @InjectRepository(Permission)
+    private permissionRepo: Repository<Permission>,
+
     private jwtService: JwtService,
   ) {}
+
+  /**
+   * 根据用户拥有的角色，计算其拥有的权限名称列表。
+   * - admin 角色拥有系统全部权限
+   * - 其他角色从 role_permission 映射中加载
+   */
+  async getUserPermissions(user: User): Promise<string[]> {
+    // admin 拥有全部权限
+    if (user.roles?.includes('admin')) {
+      const all = await this.permissionRepo.find();
+      return all.map((p) => p.name);
+    }
+
+    if (!user.roles || user.roles.length === 0) {
+      return [];
+    }
+
+    const rolePermissions = await this.rolePermissionRepo.find({
+      where: { role: { name: In(user.roles) } },
+      relations: ['permission'],
+    });
+
+    return [
+      ...new Set(
+        rolePermissions
+          .map((rp) => rp.permission?.name)
+          .filter((name): name is string => Boolean(name)),
+      ),
+    ];
+  }
 
   async register(email: string, password: string, first_name?: string, last_name?: string) {
     const existingUser = await this.userRepo.findOne({ where: { email } });
@@ -77,8 +116,13 @@ export class AuthService {
       throw new UnauthorizedException('用户不存在');
     }
 
-    // 不返回密码哈希
+    // 不返回密码哈希，并附带当前用户的权限名称列表
     const { password_hash, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const permissions = await this.getUserPermissions(user);
+
+    return {
+      ...userWithoutPassword,
+      permissions,
+    };
   }
 }

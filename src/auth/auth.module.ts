@@ -7,11 +7,13 @@ import { AuthController } from './auth.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { User } from '../entities/user.entity';
 import { Role } from '../entities/role.entity';
+import { RolePermission } from '../entities/role-permission.entity';
+import { Permission } from '../entities/permission.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Role]),
+    TypeOrmModule.forFeature([User, Role, RolePermission, Permission]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

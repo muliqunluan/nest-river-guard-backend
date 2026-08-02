@@ -107,10 +107,9 @@ export class UserService {
       throw new NotFoundException(`User with email ${email} not found.`);
     }
 
-    const role = await this.roleRepository.findOne({ where: { name: roleName } });
-    if (!role) {
-      throw new NotFoundException(`Role ${roleName} not found.`);
-    }
+    // 注意：不再强制要求角色定义仍然存在。
+    // 如果角色已被删除但用户 roles 数组中仍有该角色名（孤儿数据），
+    // 同样允许将其移除，避免无法清理残留角色。
 
     // 检查用户是否有该角色
     if (!user.roles || !user.roles.includes(roleName)) {

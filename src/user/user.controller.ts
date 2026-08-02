@@ -69,7 +69,7 @@ export class UserController {
   // 更新用户信息 - 仅管理员
   @Put(':id')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('users'))
   @ApiOperation({ summary: '更新用户信息', description: '更新指定用户的信息（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '用户ID', example: '1' })
   @ApiResponse({ status: 200, description: '更新成功' })
@@ -83,7 +83,7 @@ export class UserController {
   // 更新用户角色 - 仅管理员
   @Put(':id/roles')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('users'))
   @ApiOperation({ summary: '更新用户角色', description: '更新指定用户的角色列表（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '用户ID', example: '1' })
   @ApiBody({
@@ -108,7 +108,7 @@ export class UserController {
   @Post(':id/roles')
   @HttpCode(HttpStatus.OK)
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('users'))
   @ApiOperation({ summary: '为用户分配角色', description: '为指定用户分配单个角色（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '用户ID', example: '1' })
   @ApiResponse({ status: 200, description: '分配成功' })
@@ -123,7 +123,7 @@ export class UserController {
   // 从用户移除角色 - 仅管理员
   @Delete(':id/roles/:roleName')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies(Policies.canManage('admin-panel'))
+  @CheckPolicies(Policies.canManage('users'))
   @ApiOperation({ summary: '移除用户角色', description: '从指定用户移除角色（需要管理员权限）' })
   @ApiParam({ name: 'id', description: '用户ID', example: '1' })
   @ApiParam({ name: 'roleName', description: '角色名称', example: 'admin' })

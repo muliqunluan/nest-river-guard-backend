@@ -3,6 +3,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from '../entities/role.entity';
+import { Role as RoleEnum } from '../auth/enums/role.enum';
 import { Permission } from '../entities/permission.entity';
 import { RolePermission } from '../entities/role-permission.entity';
 import { User } from '../entities/user.entity';
@@ -69,6 +70,19 @@ export class RolesService {
   // 更新角色
   async update(id: number, name: string): Promise<Role> {
     const role = await this.findById(id);
+    const oldName = role.name;
+
+    // 同步更新所有用户 roles 数组中的角色名称，避免重命名后出现悬挂的角色名
+    if (oldName !== name) {
+      const users = await this.userRepository.find();
+      for (const user of users) {
+        if (user.roles && user.roles.includes(oldName)) {
+          user.roles = user.roles.map((r) => (r === oldName ? name : r));
+          await this.userRepository.save(user);
+        }
+      }
+    }
+
     role.name = name;
     return this.roleRepository.save(role);
   }
@@ -76,6 +90,17 @@ export class RolesService {
   // 删除角色
   async remove(id: number): Promise<void> {
     const role = await this.findById(id);
+
+    // 同步从所有用户的 roles 数组中移除该角色名称，
+    // 避免删除角色后用户仍保留已被删除的角色名（数据悬挂）
+    const users = await this.userRepository.find();
+    for (const user of users) {
+      if (user.roles && user.roles.includes(role.name)) {
+        user.roles = user.roles.filter((r) => r !== role.name);
+        await this.userRepository.save(user);
+      }
+    }
+
     await this.roleRepository.remove(role);
   }
 
@@ -94,6 +119,12 @@ export class RolesService {
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
       throw new NotFoundException(`Role with ID ${roleId} not found`);
+    }
+
+    // 保护检查：admin 角色由系统内置保证拥有全部权限（Manage all），
+    // 单独分配权限并无实际意义，禁止对其进行权限分配，避免冗余设计
+    if (role.name === RoleEnum.ADMIN) {
+      throw new ForbiddenException('admin 角色拥有全部权限，不可为其分配权限');
     }
 
     const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
@@ -120,6 +151,12 @@ export class RolesService {
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
       throw new NotFoundException(`Role with ID ${roleId} not found`);
+    }
+
+    // 保护检查：admin 角色由系统内置保证拥有全部权限（Manage all），
+    // 不存在可被移除的权限，禁止对其进行权限移除，避免冗余设计
+    if (role.name === RoleEnum.ADMIN) {
+      throw new ForbiddenException('admin 角色拥有全部权限，不可移除其权限');
     }
 
     const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
@@ -186,10 +223,9 @@ export class RolesService {
       throw new NotFoundException(`User with email ${email} not found`);
     }
 
-    const role = await this.roleRepository.findOne({ where: { name: roleName } });
-    if (!role) {
-      throw new NotFoundException(`Role ${roleName} not found`);
-    }
+    // 注意：不再强制要求角色定义仍然存在。
+    // 如果角色已被删除但用户 roles 数组中仍有该角色名（孤儿数据），
+    // 同样允许将其移除，避免无法清理残留角色。
 
     // 检查用户是否有该角色
     if (!user.roles || !user.roles.includes(roleName)) {
