@@ -15,12 +15,6 @@ export class CaslAbilityFactory {
     // ──────────────────────────────────────────────
     if (user.roles.includes('admin')) {
       can(Action.Manage, 'all');
-    } else {
-      // ────────────────────────────────────────────
-      // 2. 用户自身信息
-      // ────────────────────────────────────────────
-      can(Action.Read, 'User', { id: user.id });
-      can(Action.Update, 'User', { id: user.id });
     }
 
     return build({
