@@ -8,8 +8,8 @@ services:
       POSTGRES_USER: ${PG_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${PG_PASSWORD:-12100}
       POSTGRES_DB: ${DB_NAME:-river_guard}
-    ports:
-      - "5432:5432"
+    # 不发布宿主机端口：后端通过内部网络 postgres:5432 连接，
+    # 避免宿主机 5432 被占用时导致容器网络配置失败（隔离）而连不上数据库。
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
