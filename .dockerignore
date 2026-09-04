@@ -10,6 +10,9 @@ build
 .next
 out
 
+# TypeScript 增量编译缓存（避免陈旧缓存导致增量编译跳过 emit）
+*.tsbuildinfo
+
 # 环境变量文件
 .env
 .env.local

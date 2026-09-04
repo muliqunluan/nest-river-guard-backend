@@ -51,10 +51,10 @@ services:
         condition: service_healthy
     networks:
       - river-guard-network
+    # 应用启动前先校验数据库连接与初始化数据，任何一步失败容器都会退出，
+    # 配合 restart: unless-stopped 与下方 healthcheck 可正确反映部署是否就绪。
     command: >
       sh -c "
-        echo '等待数据库启动...' &&
-        sleep 10 &&
         echo '检查数据库连接...' &&
         bun run build &&
         node dist/scripts/check-db.js &&
@@ -63,6 +63,13 @@ services:
         echo '启动应用...' &&
         bun run start:prod
       "
+    healthcheck:
+      # 通过 Swagger JSON 端点确认应用已真正监听并响应，而非仅容器处于 running 状态
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api-docs-json > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   postgres_data:
