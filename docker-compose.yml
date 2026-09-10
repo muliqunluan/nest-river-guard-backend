@@ -56,12 +56,11 @@ services:
     command: >
       sh -c "
         echo '检查数据库连接...' &&
-        bun run build &&
         node dist/scripts/check-db.js &&
         echo '初始化测试数据...' &&
         node dist/scripts/init-test-data.js &&
         echo '启动应用...' &&
-        bun run start:prod
+        node dist/main
       "
     healthcheck:
       # 通过 Swagger JSON 端点确认应用已真正监听并响应，而非仅容器处于 running 状态
